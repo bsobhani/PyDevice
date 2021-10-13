@@ -19,7 +19,7 @@
 # Build settings that are NOT module paths should appear in a
 # CONFIG_SITE file.
 
-EPICS_BASE=/home/controls/epics/base/main
+EPICS_BASE=/home/controls/common/base/main
 
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
