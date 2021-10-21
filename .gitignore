@@ -6,3 +6,9 @@ lib/
 db/
 dbd/
 *.pyc
+ 
+# sts-deploy build files
+build_log.txt
+build_stdout.txt
+build_stderr.txt
+ 
