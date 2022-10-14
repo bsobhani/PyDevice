@@ -1,17 +1,19 @@
 # Makefile
 TOP = ..
 include $(TOP)/configure/CONFIG
+include $(TOP)/configure/CONFIG.PyDevice
 #----------------------------------------
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 
-USR_LDFLAGS += $(shell $(PYTHON_CONFIG) --ldflags)
-USR_CXXFLAGS += $(subst -Wstrict-prototypes,,$(shell $(PYTHON_CONFIG) --cflags))
-USR_CXXFLAGS += -std=c++11 -O2
-#CXXFLAGS += -g -ggdb -O0
+USR_CXXFLAGS += -std=c++11 -O2 -DUSE_TYPED_RSET
+CXXFLAGS += -g -ggdb -O0
 
 LIBRARY_IOC += pydev
 
 DBD += pydev.dbd
+DBDINC += pycalcRecord
+
+pydev_DBD += pycalcRecord.dbd
 
 pydev_SRCS += asyncexec.cpp
 pydev_SRCS += epicsdevice.cpp
@@ -28,6 +30,7 @@ pydev_SRCS += pydev_longout.cpp
 pydev_SRCS += pydev_stringin.cpp
 pydev_SRCS += pydev_stringout.cpp
 pydev_SRCS += pydev_waveform.cpp
+pydev_SRCS += pycalcRecord.cpp
 
 # 3.15 and above support lsi, lso and printf records  
 ifdef BASE_3_15
