@@ -7,6 +7,10 @@ db/
 dbd/
 *.pyc
  
+# PyDevice generated files
+include/
+configure/CONFIG.PyDevice
+
 # sts-deploy build files
 build_log.txt
 build_stdout.txt
