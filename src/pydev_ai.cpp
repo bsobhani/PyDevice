@@ -20,6 +20,11 @@
 #include "pywrapper.h"
 #include "util.h"
 
+#include <thread>
+#include <chrono>
+using namespace std::this_thread;
+using namespace std::chrono;
+
 struct PyDevContext {
     CALLBACK callback;
     IOSCANPVT scan;
@@ -120,6 +125,7 @@ static void processRecordCb(aiRecord* rec)
         ctx->processCbStatus = -1;
     }
     callbackRequestProcessCallback(&ctx->callback, rec->prio, rec);
+    sleep_for(milliseconds(100));
 
 
     if (ctx->processCbStatus == 0)
