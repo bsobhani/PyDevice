@@ -1,5 +1,3 @@
-# Files generated during build
-configure/CONFIG.PyDevice
 O.linux*
 O.Common
 envPaths
@@ -7,8 +5,14 @@ bin/
 lib/
 db/
 dbd/
-include/
 *.pyc
+ 
+# PyDevice generated files
+include/
+configure/CONFIG.PyDevice
 
-# Various IDE project files
-.vscode/
+# sts-deploy build files
+build_log.txt
+build_stdout.txt
+build_stderr.txt
+ 
