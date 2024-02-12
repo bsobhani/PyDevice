@@ -20,6 +20,8 @@
 #include "pywrapper.h"
 #include "util.h"
 
+#include <time.h>
+
 struct PyDevContext {
     CALLBACK callback;
     IOSCANPVT scan;
@@ -30,17 +32,22 @@ static std::map<std::string, IOSCANPVT> ioScanPvts;
 
 static void scanCallback(IOSCANPVT scan)
 {
+//printf("inside scanCallback\n");
 #ifdef VERSION_INT
 #  if EPICS_VERSION_INT < VERSION_INT(3,16,0,0)
+//printf("version less than 316\n");
     scanIoRequest(scan);
 #  else
+//printf("version greater than 316\n");
     scanIoImmediate(scan, priorityHigh);
     scanIoImmediate(scan, priorityMedium);
     scanIoImmediate(scan, priorityLow);
 #  endif
 #else
+//printf("not version_int\n");
     scanIoRequest(scan);
 #endif
+//printf("leaving scanCallback\n");
 }
 
 static long initRecord(aiRecord* rec)
@@ -79,6 +86,7 @@ static long getIointInfo(int /*direction*/, aiRecord *rec, IOSCANPVT* io)
 
 static void processRecordCb(aiRecord* rec)
 {
+//printf("begin processRecordCb\n");
     auto ctx = reinterpret_cast<PyDevContext*>(rec->dpvt);
 
     rec->val -= rec->aoff;
@@ -124,6 +132,7 @@ static void processRecordCb(aiRecord* rec)
         ctx->processCbStatus = 2; // Conversion already done
 
     callbackRequestProcessCallback(&ctx->callback, rec->prio, rec);
+//printf("end processRecordCb\n");
 }
 
 static long processRecord(aiRecord* rec)
@@ -143,7 +152,11 @@ static long processRecord(aiRecord* rec)
     rec->pact = 1;
 
     auto scheduled = AsyncExec::schedule([rec]() {
+clock_t begin = clock();
         processRecordCb(rec);
+clock_t end = clock();
+double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time in scheduled = %lf\n", time_spent);
     });
     return (scheduled ? 0 : -1);
 }

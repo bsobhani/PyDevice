@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <time.h>
 
 template<typename T>
 class TaskQueue {
@@ -34,6 +35,8 @@ class TaskQueue {
 
         bool dequeue(double timeout, T& task)
         {
+//printf("begin dequeue\n");
+clock_t begin = clock();
             bool found = false;
             mutex.lock();
             if (que.empty()) {
@@ -47,6 +50,10 @@ class TaskQueue {
                 found = true;
             }
             mutex.unlock();
+clock_t end = clock();
+double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("time spent = %lf\n", time_spent);
+//printf("end dequeue\n");
             return found;
         }
 };
@@ -74,7 +81,11 @@ class WorkerThread : public epicsThreadRunable {
             while (running) {
                 AsyncExec::Callback cb;
                 if (g_tasks.dequeue(1.0, cb)) {
+clock_t begin = clock();
                     cb();
+clock_t end = clock();
+double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time = %lf\n", time_spent);
                 }
             }
         }
