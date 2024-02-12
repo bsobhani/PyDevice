@@ -28,7 +28,7 @@
 #include "asyncexec.h"
 #include "pywrapper.h"
 #include "util.h"
-#include "Python.h"
+//#include "Python.h"
 
 #define GEN_SIZE_OFFSET
 #include "pycalcRecord.h"
@@ -136,15 +136,15 @@ static long initRecord(dbCommon *common, int pass)
     return 0;
 }
 
-extern PyObject* globDict;
-extern PyObject* locDict;
+//extern PyObject* globDict;
+//extern PyObject* locDict;
 static void processRecordCb(pycalcRecord* rec)
 {
 clock_t begin = clock();
     auto fields = Util::getFields(rec->calc);
     for (auto& keyval: fields) {
 
-    PyObject* pyStr = PyUnicode_FromString(keyval.second.c_str());
+    //PyObject* pyStr = PyUnicode_FromString(keyval.second.c_str());
         if      (keyval.first == "NAME") keyval.second = rec->name;
         else if (keyval.first == "TPRO") keyval.second = std::to_string(rec->tpro);
         else {
