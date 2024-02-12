@@ -23,10 +23,12 @@
 
 #include <string>
 #include <cstring>
+#include <time.h>
 
 #include "asyncexec.h"
 #include "pywrapper.h"
 #include "util.h"
+#include "Python.h"
 
 #define GEN_SIZE_OFFSET
 #include "pycalcRecord.h"
@@ -134,10 +136,15 @@ static long initRecord(dbCommon *common, int pass)
     return 0;
 }
 
+extern PyObject* globDict;
+extern PyObject* locDict;
 static void processRecordCb(pycalcRecord* rec)
 {
+clock_t begin = clock();
     auto fields = Util::getFields(rec->calc);
     for (auto& keyval: fields) {
+
+    PyObject* pyStr = PyUnicode_FromString(keyval.second.c_str());
         if      (keyval.first == "NAME") keyval.second = rec->name;
         else if (keyval.first == "TPRO") keyval.second = std::to_string(rec->tpro);
         else {
@@ -192,16 +199,27 @@ static void processRecordCb(pycalcRecord* rec)
             }
         }
     }
+clock_t end = clock();
+double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time after large if statement = %lf\n", time_spent);
     std::string code = Util::replaceFields(rec->calc, fields);
+    //std::string code = std::string(rec->calc);
 
     PyWrapper::MultiTypeValue ret;
     long status = 0;
+end = clock();
+time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time before exec = %lf\n", time_spent);
+
     try {
         ret = PyWrapper::exec(code, (rec->tpro == 1));
     } catch (...) {
         status = -1;
     }
 
+end = clock();
+time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time after exec = %lf\n", time_spent);
     rec->nevl = 0;
     if (status == 0) {
         typedef long (*convertRoutineCast)(const void*, void*, void*);
@@ -275,7 +293,11 @@ static long processRecord(dbCommon *common)
         }
 
         auto scheduled = AsyncExec::schedule([rec]() {
+clock_t begin = clock();
             processRecordCb(rec);
+clock_t end = clock();
+double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+//printf("cb execution time pycalc = %lf\n", time_spent);
         });
         return (scheduled ? 0 : -1);
     }
