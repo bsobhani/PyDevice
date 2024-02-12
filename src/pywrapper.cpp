@@ -11,9 +11,12 @@
 #include <map>
 #include <stdexcept>
 #include <iostream>
+#include <unordered_map>
 
-static PyObject* globDict = nullptr;
-static PyObject* locDict = nullptr;
+//static PyObject* globDict = nullptr;
+//static PyObject* locDict = nullptr;
+PyObject* globDict = nullptr;
+PyObject* locDict = nullptr;
 static PyThreadState* mainThread = nullptr;
 static std::map<std::string, std::pair<PyWrapper::Callback, PyObject*>> params;
 
@@ -414,6 +417,8 @@ bool PyWrapper::exec(const std::string& line, bool debug, std::vector<std::strin
     return false;
 }
 
+std::unordered_map<std::string, PyObject*> co_map;
+
 PyWrapper::MultiTypeValue PyWrapper::exec(const std::string& line, bool debug)
 {
     MultiTypeValue val;
@@ -424,7 +429,41 @@ PyWrapper::MultiTypeValue PyWrapper::exec(const std::string& line, bool debug)
     }
 
     // Evaluating Python produces a return value
-    PyObject* r = PyRun_String(line.c_str(), Py_eval_input, globDict, locDict);
+    //PyObject* r = PyRun_String(line.c_str(), Py_eval_input, globDict, locDict);
+clock_t begin = clock();
+    PyObject* co; 
+int enable_caching = 1;
+if(enable_caching){
+    if(co_map.find(line) != co_map.end()){
+	co = co_map[line];
+    }
+    else{
+//printf("string not found:\n%s\n", line.c_str());
+	co = Py_CompileString(line.c_str(), "asdf1", Py_eval_input);
+	co_map[line] = co;
+    }
+}
+        
+clock_t end1 = clock();
+double time_spent1 = (double)(end1 - begin) / CLOCKS_PER_SEC;
+    //PyObject* co = Py_CompileString("print('hello world')", "asdf1", Py_eval_input);
+    //printf("co compile time is %lf\n", time_spent1);
+    //printf("co is %d\n", co);
+    //printf("line is %d\n", line.c_str());
+    //printf("line is pydev%d\n", strcmp("import pydev", line.c_str()));
+    //printf("unordered map size %d\n", co_map.size());
+    PyObject* r;
+    if(enable_caching && co){
+        //printf("running evalcode\n");
+        r = PyEval_EvalCode(co, globDict, locDict);
+clock_t end2 = clock();
+double time_spent2 = (double)(end2 - end1) / CLOCKS_PER_SEC;
+    //printf("eval CODE time is %lf\n", time_spent2);
+    }
+    else{
+        r = PyRun_String(line.c_str(), Py_eval_input, globDict, locDict);
+    }
+    //printf("AFTER exec code\n");
     if (r != nullptr) {
         bool converted = convert(r, val);
         Py_DecRef(r);
